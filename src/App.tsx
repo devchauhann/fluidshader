@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShaderCanvas } from './components/ShaderCanvas';
+import { ExportDropdown } from './components/ExportDropdown';
+import { CopyDropdown } from './components/CopyDropdown';
 import { buildFsSource } from './shaderUtils';
 
 const Icon = ({ icon, class: className }: { icon: string; class?: string }) => {
@@ -45,6 +47,13 @@ export default function App() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const showToastMessage = (msg: string) => {
+    setToastMessage(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2500);
+  };
 
   const handleSaveDesign = useCallback(() => {
     localStorage.setItem('shader-studio-design', JSON.stringify(params));
@@ -125,7 +134,7 @@ draw();
 
   return (
     <div className="relative min-h-screen w-full flex flex-col pointer-events-none">
-      <ShaderCanvas {...params} />
+      <ShaderCanvas ref={canvasRef} {...params} />
 
       {/* Full Screen Dismissal UI */}
       <AnimatePresence>
@@ -206,16 +215,15 @@ draw();
                   </p>
 
                   <div className="flex flex-wrap items-center justify-center gap-4">
-                    <button
-                      onClick={handleCopyCode}
-                      className="btn-primary px-8 py-4 hover:scale-105 active:scale-95 shadow-xl shadow-white/5"
-                    >
-                      <Icon icon="solar:copy-linear" class="text-lg" />
-                      Copy shader code
-                    </button>
+                    <div className="w-full sm:w-auto">
+                      <CopyDropdown
+                        params={params}
+                        onShowToast={showToastMessage}
+                      />
+                    </div>
                     <button
                       onClick={() => setIsFullScreen(true)}
-                      className="btn-ghost px-8 py-4 hover:scale-105 active:scale-95"
+                      className="btn-ghost px-8 py-4 hover:scale-105 active:scale-95 w-full sm:w-auto"
                     >
                       <Icon icon="solar:maximize-linear" class="text-lg" />
                       Full Preview
@@ -302,20 +310,15 @@ draw();
                 </div>
 
                 <div className="flex flex-col gap-3 pt-4 border-t border-white/5">
-                  <button
-                    onClick={handleCopyCode}
-                    className="btn-primary w-full py-3"
-                  >
-                    <Icon icon="solar:copy-linear" class="text-lg" />
-                    Copy shader code
-                  </button>
-                  <button
-                    onClick={handleSaveDesign}
-                    className="btn-ghost w-full py-3"
-                  >
-                    <Icon icon="solar:diskette-linear" class="text-lg" />
-                    Save Design
-                  </button>
+                  <CopyDropdown
+                    params={params}
+                    onShowToast={showToastMessage}
+                  />
+                  <ExportDropdown
+                    params={params}
+                    canvasRef={canvasRef}
+                    onShowToast={showToastMessage}
+                  />
                   <button
                     onClick={resetParams}
                     className="btn-ghost w-full py-3"
@@ -406,13 +409,15 @@ draw();
                   </div>
 
                   <div className="flex flex-col gap-3 pt-4">
-                    <button
-                      onClick={handleCopyCode}
-                      className="btn-primary w-full py-3"
-                    >
-                      <Icon icon="solar:copy-linear" class="text-lg" />
-                      Copy shader code
-                    </button>
+                    <CopyDropdown
+                      params={params}
+                      onShowToast={showToastMessage}
+                    />
+                    <ExportDropdown
+                      params={params}
+                      canvasRef={canvasRef}
+                      onShowToast={showToastMessage}
+                    />
                     <button
                       onClick={handleSaveDesign}
                       className="btn-ghost w-full py-3"
